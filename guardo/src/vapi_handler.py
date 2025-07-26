@@ -1,10 +1,16 @@
 """
 Vapi agent for call handling and warm transfers.
+Integrates webhook server with agent orchestration.
 """
 import json
 import time
 from typing import Dict, Any, Optional
 from datetime import datetime
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from pyngrok import ngrok
+import uvicorn
+import os
 
 class VapiAgent:
     """Agent responsible for call handling, transcription, and transfers."""
@@ -195,5 +201,147 @@ class VapiAgent:
         }
         print(f"[Vapi] INCIDENT LOG: {json.dumps(incident)}")
 
-# Create singleton instance
+    def get_call_summary(self, call_id: str) -> Dict[str, Any]:
+        """Get summary of call for reporting."""
+        if call_id not in self.active_calls:
+            return {"error": "Call not found"}
+        
+        call = self.active_calls[call_id]
+        
+        return {
+            "call_id": call_id,
+            "caller_number": call["caller_number"],
+            "start_time": call["start_time"],
+            "status": call["status"],
+            "transcript_count": len(call["transcripts"]),
+            "transcripts": call["transcripts"]
+        }
+
+
+class VapiWebhookServer:
+    """FastAPI webhook server for VAPI integration."""
+    
+    def __init__(self, vapi_agent: VapiAgent):
+        self.app = FastAPI()
+        self.vapi_agent = vapi_agent
+        
+        # Add CORS middleware
+        self.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+        
+        # Set up routes
+        self._setup_routes()
+    
+    def _setup_routes(self):
+        """Set up FastAPI routes."""
+        
+        @self.app.post("/scamHandling")
+        async def scam_handling(request: Request):
+            """Handle scam detection webhook from VAPI."""
+            try:
+                data = await request.json()
+                scam_reason = data.get('ScamReason', '')
+                call_transcript = data.get('callTranscript', '')
+                call_id = data.get('callId', f"webhook_{int(time.time())}")
+                
+                print(f"[VAPI Webhook] Received scam alert: {scam_reason}")
+                print(f"[VAPI Webhook] Transcript: {call_transcript[:100]}...")
+                
+                # Create call data if not exists
+                if call_id not in self.vapi_agent.active_calls:
+                    call_data = {
+                        "call_id": call_id,
+                        "from": data.get('callerNumber', 'Unknown')
+                    }
+                    self.vapi_agent.answer_call(call_data)
+                
+                # Process the scam alert
+                result = self._process_scam_alert(call_id, scam_reason, call_transcript)
+                
+                return {"status": "ok", "result": result}
+                
+            except Exception as e:
+                print(f"[VAPI Webhook] Error processing request: {e}")
+                return {"status": "error", "message": str(e)}
+        
+        @self.app.get("/health")
+        async def health_check():
+            """Health check endpoint."""
+            return {"status": "healthy", "service": "Guardo VAPI Webhook"}
+        
+        @self.app.get("/calls/{call_id}")
+        async def get_call_info(call_id: str):
+            """Get information about a specific call."""
+            return self.vapi_agent.get_call_summary(call_id)
+    
+    def _process_scam_alert(self, call_id: str, scam_reason: str, transcript: str) -> Dict[str, Any]:
+        """Process a scam alert from VAPI."""
+        # Determine risk level based on scam reason
+        risk_score = self._assess_risk_from_reason(scam_reason)
+        
+        context = {
+            "risk_score": risk_score,
+            "scam_reason": scam_reason,
+            "transcript": transcript
+        }
+        
+        if risk_score > 0.8:
+            # High risk - block or transfer to family
+            if "irs" in scam_reason.lower() or "arrest" in scam_reason.lower():
+                return self.vapi_agent.block_call(call_id, scam_reason)
+            else:
+                return self.vapi_agent.warm_transfer(call_id, "family", context)
+        elif risk_score > 0.5:
+            # Medium risk - transfer with monitoring
+            transfer_result = self.vapi_agent.warm_transfer(call_id, "senior", context)
+            self.vapi_agent.monitor_call(call_id)
+            return transfer_result
+        else:
+            # Low risk - normal transfer
+            return self.vapi_agent.warm_transfer(call_id, "senior", context)
+    
+    def _assess_risk_from_reason(self, scam_reason: str) -> float:
+        """Assess risk score from scam reason."""
+        reason_lower = scam_reason.lower()
+        
+        # High risk patterns
+        if any(keyword in reason_lower for keyword in ["irs", "fbi", "arrest", "warrant", "police"]):
+            return 0.9
+        elif any(keyword in reason_lower for keyword in ["urgent", "immediate", "emergency"]):
+            return 0.8
+        elif any(keyword in reason_lower for keyword in ["prize", "won", "lottery", "winner"]):
+            return 0.75
+        elif any(keyword in reason_lower for keyword in ["medicare", "insurance", "social security"]):
+            return 0.7
+        else:
+            return 0.6
+    
+    def run_server(self, port: int = 8000, use_ngrok: bool = True):
+        """Run the webhook server."""
+        if use_ngrok:
+            try:
+                public_url = ngrok.connect(port).public_url
+                print(f"🌐 Public ngrok URL: {public_url}")
+                print(f"📞 Scam Endpoint: {public_url}/scamHandling")
+                print(f"❤️  Health Check: {public_url}/health")
+            except Exception as e:
+                print(f"⚠️  Ngrok failed: {e}. Running locally only.")
+        
+        print(f"🚀 Starting VAPI webhook server on port {port}...")
+        uvicorn.run(self.app, host="0.0.0.0", port=port)
+
+
+# Create singleton instances
 vapi_agent = VapiAgent()
+vapi_webhook_server = VapiWebhookServer(vapi_agent)
+
+
+# Convenience function to start the server
+def start_vapi_server(port: int = 8000, use_ngrok: bool = True):
+    """Start the VAPI webhook server."""
+    vapi_webhook_server.run_server(port=port, use_ngrok=use_ngrok)

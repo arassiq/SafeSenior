@@ -170,6 +170,86 @@ class ScamPreventionOrchestrator:
             
             return self.vapi_agent.warm_transfer(call_id, "senior", risk_assessment)
     
+    def handle_webhook_scam_alert(self, scam_reason: str, call_transcript: str, call_id: str = None) -> Dict[str, Any]:
+        """
+        Handle scam alert from VAPI webhook.
+        This integrates with the webhook server for real-time processing.
+        """
+        if not self.is_initialized:
+            print("[Orchestrator] Error: Knowledge pipeline not initialized!")
+            return {"error": "System not initialized"}
+        
+        print(f"\n=== PROCESSING WEBHOOK SCAM ALERT ===")
+        print(f"[Orchestrator] Scam Reason: {scam_reason}")
+        print(f"[Orchestrator] Transcript: {call_transcript[:100]}...")
+        
+        # Step 1: Analyze with LlamaIndex
+        print("[Orchestrator] Step 1: Analyzing with LlamaIndex...")
+        risk_assessment = self.llama_agent.query_scam_patterns(call_transcript)
+        
+        # Step 2: Enhance with Senso.ai
+        print("[Orchestrator] Step 2: Enhancing with Senso.ai...")
+        enhanced_data = self.senso_agent.normalize_transcript(call_transcript)
+        
+        # Step 3: Combine assessments
+        llama_risk = risk_assessment.get("risk_score", 0)
+        webhook_risk = self._assess_webhook_risk(scam_reason)
+        combined_risk = max(llama_risk, webhook_risk)
+        
+        print(f"[Orchestrator] LlamaIndex Risk: {llama_risk:.2f}")
+        print(f"[Orchestrator] Webhook Risk: {webhook_risk:.2f}")
+        print(f"[Orchestrator] Combined Risk: {combined_risk:.2f}")
+        
+        # Step 4: Make decision
+        context = {
+            "risk_score": combined_risk,
+            "scam_reason": scam_reason,
+            "llama_assessment": risk_assessment,
+            "enhanced_data": enhanced_data
+        }
+        
+        if combined_risk > 0.8:
+            print("[Orchestrator] 🚨 HIGH RISK - Blocking or transferring to family")
+            if "irs" in scam_reason.lower() or "arrest" in scam_reason.lower():
+                action = "block"
+                reason = f"High-risk scam detected: {scam_reason}"
+            else:
+                action = "transfer_family"
+                reason = f"Scam alert: {scam_reason}"
+        elif combined_risk > 0.5:
+            print("[Orchestrator] ⚠️  MEDIUM RISK - Transfer with monitoring")
+            action = "transfer_monitor"
+            reason = f"Medium risk: {scam_reason}"
+        else:
+            print("[Orchestrator] ✅ LOW RISK - Normal transfer")
+            action = "transfer_normal"
+            reason = "Call appears safe"
+        
+        return {
+            "action": action,
+            "reason": reason,
+            "risk_score": combined_risk,
+            "context": context
+        }
+    
+    def _assess_webhook_risk(self, scam_reason: str) -> float:
+        """Assess risk based on webhook scam reason."""
+        reason_lower = scam_reason.lower()
+        
+        # Critical risk patterns
+        if any(keyword in reason_lower for keyword in ["irs", "fbi", "arrest", "warrant", "police"]):
+            return 0.95
+        elif any(keyword in reason_lower for keyword in ["urgent", "immediate", "emergency", "act now"]):
+            return 0.85
+        elif any(keyword in reason_lower for keyword in ["prize", "won", "lottery", "winner", "congratulations"]):
+            return 0.8
+        elif any(keyword in reason_lower for keyword in ["medicare", "insurance", "social security", "benefits"]):
+            return 0.75
+        elif any(keyword in reason_lower for keyword in ["grandchild", "family", "bail", "trouble"]):
+            return 0.9
+        else:
+            return 0.6
+    
     def create_llamaindex_tools(self):
         """Create LlamaIndex tools for each agent's capabilities."""
         # TODO: MCP search tool
