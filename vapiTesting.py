@@ -19,13 +19,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post("/receivedScamCall")
-async def catch_webhook(request: Request):
+@app.post("/scamHandling")
+async def scamHandling(request: Request):
     
     data = await request.json()
-    #print("Received webhook data:", data)
-    print(data["Scam"])
-    
+
+    print(data['ScamReason'], data['callTranscript'])
+
     return {"status": "ok"}
 
 
@@ -33,7 +33,7 @@ def run():
     port = 8000
     public_url = ngrok.connect(port).public_url
     print(f"Public ngrok URL: {public_url}")
-    print(f"Scam Endpoint: {public_url}/receivedScamCall")
+    print(f"Scam Endpoint: {public_url}/scamHandling")
     uvicorn.run(app, host="0.0.0.0", port=port)
 
 if __name__ == "__main__":
