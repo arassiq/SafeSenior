@@ -1,6 +1,6 @@
-# Guardo - Scam Detection System
+# Guardo - Scam Detection for Seniors
 
-Guardo is a scam detection system designed to protect senior citizens from phone and text scams using AI-powered analysis with LlamaIndex.
+Guardo is a voice AI system to protect seniors from phone scams. It uses Vapi for real-time call handling, LlamaIndex for scam detection, Senso.ai for data processing, and BrightData for scam trend data.
 
 ## Features
 

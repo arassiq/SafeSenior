@@ -1,47 +1,17 @@
-# Core LlamaIndex dependencies
-llama-index>=0.9.0
-llama-index-core>=0.9.0
-llama-index-embeddings-openai>=0.1.0
-llama-index-llms-openai>=0.1.0
+# Core dependencies as per PRD
+llama-index
+vapi-sdk
+requests
 
-# Vector store and embeddings
-chromadb>=0.4.0
-sentence-transformers>=2.2.0
+# ZeroEntropy integration
+# TODO: Add ZeroEntropy client SDK when available
+# TODO: For now, using requests for HTTP calls
 
-# General ML and data processing
-numpy>=1.24.0
-pandas>=2.0.0
-scikit-learn>=1.3.0
+# TODO: Add specific versions after testing
+# TODO: Add Senso.ai SDK when available
+# TODO: Add BrightData SDK when available
 
-# Text processing
-nltk>=3.8
-spacy>=3.6.0
-
-# Web and API frameworks (for future extensions)
-fastapi>=0.104.0
-uvicorn>=0.24.0
-requests>=2.31.0
-
-# Configuration and environment
-python-decouple>=3.8
-pydantic>=2.5.0
-
-# Logging and monitoring
-structlog>=23.2.0
-
-# Testing
-pytest>=7.4.0
-pytest-cov>=4.1.0
-pytest-mock>=3.12.0
-
-# Development tools
-black>=23.11.0
-flake8>=6.1.0
-mypy>=1.7.0
-
-# Audio processing (for future voice integration)
-librosa>=0.10.0
-pyaudio>=0.2.13
-
-# Phone number validation
-phonenumbers>=8.13.0
+# Additional dependencies for development
+# json (built-in)
+# os (built-in)
+# logging (built-in)

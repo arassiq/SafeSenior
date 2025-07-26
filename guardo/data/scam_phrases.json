@@ -1,0 +1,21 @@
+{
+  "phrases": [
+    "This is the FBI",
+    "IRS owes you",
+    "You won a prize",
+    "Your warranty is about to expire",
+    "Act now or lose this opportunity",
+    "We need to verify your social security number",
+    "Your computer has been infected",
+    "This is your final notice"
+  ],
+  "high_risk_keywords": [
+    "FBI",
+    "IRS", 
+    "urgent",
+    "verify",
+    "social security",
+    "winner",
+    "prize"
+  ]
+}

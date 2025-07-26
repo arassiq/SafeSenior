@@ -1,0 +1,57 @@
+{
+  "articles": [
+    {
+      "id": "article_001",
+      "title": "New IRS Scam Targeting Seniors in California",
+      "source": "FTC Consumer Alert",
+      "date": "2025-07-25",
+      "region": "North America",
+      "content": "Scammers are impersonating IRS agents and threatening seniors with arrest warrants for unpaid taxes. They demand immediate payment via gift cards and claim Medicare benefits will be cancelled.",
+      "scam_indicators": [
+        "IRS impersonation",
+        "arrest warrant threats",
+        "gift card payment demands",
+        "Medicare cancellation threats"
+      ],
+      "elderly_specific": true,
+      "urgency_level": "high"
+    },
+    {
+      "id": "article_002", 
+      "title": "Grandparent Scam Alert: Fake Emergency Calls on the Rise",
+      "source": "AARP Fraud Watch",
+      "date": "2025-07-24",
+      "region": "North America",
+      "content": "Criminals are calling elderly individuals claiming to be their grandchildren in urgent need of bail money. They use emotional manipulation and request secrecy from other family members.",
+      "scam_indicators": [
+        "grandchild impersonation",
+        "bail money requests",
+        "secrecy demands",
+        "emotional manipulation"
+      ],
+      "elderly_specific": true,
+      "urgency_level": "critical"
+    },
+    {
+      "id": "article_003",
+      "title": "Medicare Open Enrollment Scams Target Seniors",
+      "source": "Senior Living Magazine",
+      "date": "2025-07-23",
+      "region": "North America", 
+      "content": "Fraudsters are calling seniors claiming they need to verify Medicare information or risk losing coverage. They ask for Social Security numbers and banking details.",
+      "scam_indicators": [
+        "Medicare verification requests",
+        "coverage loss threats",
+        "SSN requests",
+        "banking information phishing"
+      ],
+      "elderly_specific": true,
+      "urgency_level": "high"
+    }
+  ],
+  "metadata": {
+    "last_updated": "2025-07-26T00:00:00Z",
+    "source": "BrightData MCP simulation",
+    "total_articles": 3
+  }
+}
