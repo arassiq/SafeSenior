@@ -1,6 +1,12 @@
-# Guardo - Scam Detection for Seniors
+# Guardo - AI Scam Protection for Seniors
 
-Guardo is a voice AI system to protect seniors from phone scams. It uses Vapi for real-time call handling, LlamaIndex for scam detection, Senso.ai for data processing, and BrightData for scam trend data.
+Guardo is a multi-agent voice AI system that protects seniors from phone scams in real-time. It orchestrates multiple AI agents to provide comprehensive scam detection and prevention:
+
+- **Vapi Agent**: Handles call answering, transcription, and warm transfers
+- **LlamaIndex Agent**: Indexes and queries scam patterns for real-time detection
+- **Senso.ai Agent**: Enhances transcript analysis with behavioral insights
+- **ZeroEntropy Agent**: Interprets scam articles to extract elderly-specific patterns
+- **BrightData (MCP)**: Simulated scam article data source
 
 ## Features
 
@@ -15,20 +21,19 @@ Guardo is a voice AI system to protect seniors from phone scams. It uses Vapi fo
 ```
 guardo/
 ├── data/
-│   └── scam_phrases.txt   # Sample scam data
+│   ├── scam_phrases.json      # Manual scam phrases database
+│   └── scam_articles.json     # Simulated BrightData articles via MCP
 ├── src/
-│   ├── ingestion.py       # Data loading logic
-│   ├── indexing.py        # Index creation with LlamaIndex
-│   ├── querying.py        # Scam detection queries
-│   ├── config.py          # Configuration settings
-│   └── utils.py           # Helper functions
-├── tests/
-│   ├── test_ingestion.py  # Tests for data loading
-│   ├── test_indexing.py   # Tests for index creation
-│   └── test_querying.py   # Tests for querying
-├── main.py                # Main script
-├── requirements.txt       # Python dependencies
-└── README.md              # This file
+│   ├── vapi_handler.py        # Vapi agent for call handling & warm transfers
+│   ├── llama_index.py         # LlamaIndex agent for scam pattern matching
+│   ├── senso_processor.py     # Senso.ai agent for transcript analysis
+│   ├── zeroEntropy_parser.py  # ZeroEntropy agent for article interpretation
+│   ├── agent_orchestrator.py  # Main orchestrator connecting all agents
+│   └── config.py              # Configuration and API keys
+├── main.py                    # Demo script showing agent cooperation
+├── requirements.txt           # Dependencies: llama-index, vapi-sdk, requests
+├── PRD.md                     # Product requirements document
+└── README.md                  # This file
 ```
 
 ## Installation
@@ -50,41 +55,45 @@ guardo/
    pip install -r requirements.txt
    ```
 
-4. **Set up environment variables** (optional):
+4. **Set up environment variables**:
    ```bash
-   export OPENAI_API_KEY="your-api-key-here"  # If using OpenAI embeddings
-   export ENVIRONMENT="development"  # or "production"
+   export VAPI_API_KEY="your-vapi-key"           # For call handling
+   export SENSO_AI_API_KEY="your-senso-key"      # For transcript analysis
+   export ZEROENTROPY_API_KEY="your-ze-key"      # For document retrieval
+   export BRIGHTDATA_API_KEY="your-bd-key"       # For scam data (optional)
+   export OPENAI_API_KEY="your-openai-key"       # For embeddings (optional)
    ```
 
 ## Quick Start
 
-1. **Run the main script**:
+1. **Run the demo**:
    ```bash
    python main.py
    ```
 
-2. **Example usage in code**:
+   This will:
+   - Initialize all AI agents
+   - Build the scam knowledge base
+   - Simulate incoming calls
+   - Demonstrate warm transfers for scam calls
+
+2. **Using the orchestrator programmatically**:
    ```python
-   from src.config import get_config
-   from src.ingestion import DataIngestion
-   from src.indexing import ScamIndexer
-   from src.querying import ScamDetector
+   from src.agent_orchestrator import ScamPreventionOrchestrator
 
-   # Initialize system
-   config = get_config()
-   ingestion = DataIngestion(config)
-   data = ingestion.load_all_data()
+   # Initialize the multi-agent system
+   orchestrator = ScamPreventionOrchestrator()
+   orchestrator.setup_knowledge_pipeline()
 
-   # Build index
-   indexer = ScamIndexer(config)
-   index = indexer.build_index(data)
-
-   # Detect scams
-   detector = ScamDetector(config, index)
-   result = detector.detect_scam("You've won a $1000 prize! Call now!")
+   # Handle an incoming call
+   call_data = {
+       "call_id": "call_123",
+       "from": "+1-555-UNKNOWN",
+       "to": "+1-555-SENIOR"
+   }
    
-   print(f"Is scam: {result['is_scam']}")
-   print(f"Risk score: {result['risk_score']}")
+   result = orchestrator.handle_incoming_call(call_data)
+   print(f"Action taken: {result['action']}")
    ```
 
 ## Configuration

@@ -5,9 +5,10 @@ import json
 import os
 from pathlib import Path
 from typing import Dict, List, Any
-from llama_index.core import Document, VectorStoreIndex, SimpleDirectoryReader
+from llama_index.core import Document, VectorStoreIndex, SimpleDirectoryReader, Settings
 from llama_index.core.agent import ReActAgent
 from llama_index.core.tools import FunctionTool
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
 class LlamaIndexAgent:
     """Agent responsible for indexing and querying scam patterns."""
@@ -16,6 +17,11 @@ class LlamaIndexAgent:
         self.index = None
         self.data_path = Path(__file__).parent.parent / "data"
         self.scam_documents = []
+        
+        # Configure local embeddings instead of OpenAI
+        Settings.embed_model = HuggingFaceEmbedding(
+            model_name="BAAI/bge-small-en-v1.5"  # Small, fast model for demo
+        )
         
     def setup_scam_index(self) -> bool:
         """Initialize LlamaIndex with scam phrase and article data."""
@@ -71,37 +77,41 @@ class LlamaIndexAgent:
             return {"error": "Index not initialized"}
         
         try:
-            # Create query engine
-            query_engine = self.index.as_query_engine(
-                similarity_top_k=5,
-                response_mode="compact"
-            )
+            # Use retriever instead of query engine to avoid LLM requirement
+            retriever = self.index.as_retriever(similarity_top_k=5)
             
-            # Query for scam patterns
-            query = f"Is this transcript related to known scam patterns? Transcript: '{transcript}'"
-            response = query_engine.query(query)
+            # Retrieve similar scam patterns
+            nodes = retriever.retrieve(transcript)
             
             # Extract matched patterns and calculate risk
             matched_patterns = []
             risk_score = 0.0
             
-            if hasattr(response, 'source_nodes'):
-                for node in response.source_nodes:
-                    if hasattr(node, 'score') and node.score > 0.5:
-                        matched_patterns.append({
-                            "pattern": node.text,
-                            "score": node.score,
-                            "metadata": node.metadata
-                        })
-                        
-                        # Increase risk score based on match quality and urgency
-                        urgency_multiplier = {
-                            "critical": 1.5,
-                            "high": 1.2,
-                            "medium": 1.0
-                        }.get(node.metadata.get("urgency_level", "medium"), 1.0)
-                        
-                        risk_score = max(risk_score, node.score * urgency_multiplier)
+            for node in nodes:
+                if hasattr(node, 'score') and node.score > 0.3:  # Lower threshold for retrieval
+                    matched_patterns.append({
+                        "pattern": node.text,
+                        "score": node.score,
+                        "metadata": node.metadata
+                    })
+                    
+                    # Increase risk score based on match quality and urgency
+                    urgency_multiplier = {
+                        "critical": 1.5,
+                        "high": 1.2,
+                        "medium": 1.0
+                    }.get(node.metadata.get("urgency_level", "medium"), 1.0)
+                    
+                    risk_score = max(risk_score, node.score * urgency_multiplier)
+            
+            # Also check for keyword matches
+            transcript_lower = transcript.lower()
+            high_risk_keywords = ["irs", "arrest", "urgent", "immediately", "prize", "won", "warranty"]
+            keyword_matches = sum(1 for kw in high_risk_keywords if kw in transcript_lower)
+            
+            # Boost risk score based on keyword matches
+            if keyword_matches > 0:
+                risk_score = max(risk_score, 0.4 + (keyword_matches * 0.15))
             
             return {
                 "transcript": transcript,

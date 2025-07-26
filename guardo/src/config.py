@@ -1,13 +1,18 @@
 """
 Configuration settings for Guardo system.
 """
+import os
+from dotenv import load_dotenv
 
-# API Keys (to be set via environment variables)
-VAPI_API_KEY = ""  # TODO: Set from env
-SENSO_AI_API_KEY = ""  # TODO: Set from env  
-BRIGHTDATA_API_KEY = ""  # TODO: Set from env
-ZEROENTROPY_API_KEY = ""  # TODO: Set from env for document retrieval
-OPENAI_API_KEY = ""  # TODO: Set from env if using OpenAI embeddings
+# Load environment variables from .env file
+load_dotenv()
+
+# API Keys (loaded from environment variables)
+VAPI_API_KEY = os.getenv("VAPI_API_KEY", "")
+SENSO_AI_API_KEY = os.getenv("SENSO_AI_API_KEY", "")
+BRIGHTDATA_API_KEY = os.getenv("BRIGHTDATA_API_KEY", "")
+ZEROENTROPY_API_KEY = os.getenv("ZEROENTROPY_API_KEY", "")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 # File paths
 SCAM_DATA_PATH = "data/scam_phrases.json"

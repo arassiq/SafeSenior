@@ -1,6 +1,6 @@
 # Core dependencies as per PRD
 llama-index
-vapi-sdk
+# vapi-sdk  # Not available in PyPI yet, skipping for non-VAPI testing
 requests
 
 # ZeroEntropy integration
@@ -10,6 +10,9 @@ requests
 # TODO: Add specific versions after testing
 # TODO: Add Senso.ai SDK when available
 # TODO: Add BrightData SDK when available
+
+# Additional dependencies
+python-dotenv
 
 # Additional dependencies for development
 # json (built-in)
