@@ -1,4 +1,4 @@
-from vapi import Vapi
+from vapi_python import Vapi
 from fastapi import FastAPI, Request, Header, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pyngrok import ngrok
@@ -9,11 +9,13 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+vapi = Vapi(api_key="YOUR_API_KEY")
+
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  #
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -27,6 +29,8 @@ async def scamHandling(request: Request):
     print(data['ScamReason'], data['callTranscript'])
 
     return {"status": "ok"}
+
+
 
 
 def run():
