@@ -1,0 +1,22 @@
+{
+  "transcripts": [
+    {
+      "id": "test_001",
+      "caller": "+1-555-IRS",
+      "text": "This is the IRS. You owe taxes. Pay immediately or face arrest.",
+      "expected_risk": "high"
+    },
+    {
+      "id": "test_002",
+      "caller": "+1-555-DOCTOR",
+      "text": "Hello, this is your doctor's office confirming tomorrow's appointment.",
+      "expected_risk": "low"
+    },
+    {
+      "id": "test_003",
+      "caller": "+1-555-GRANDSON",
+      "text": "Grandma, it's me. I need bail money. Don't tell mom.",
+      "expected_risk": "high"
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "collection_date": "2025-07-26T15:58:54.047465",
+  "sources": [
+    {
+      "source": "perplexity",
+      "articles": [
+        {
+          "title": "New IRS Impersonation Scam Targets Elderly with AI Voice Cloning",
+          "description": "Scammers are using AI to clone voices of IRS agents, targeting elderly taxpayers with threats of arrest. The FBI warns seniors to verify any IRS contact through official channels.",
+          "url": "https://example.com/irs-ai-scam",
+          "published": "2025-07-26T10:00:00Z",
+          "scam_type": "impersonation",
+          "risk_level": "critical",
+          "elderly_specific": true,
+          "key_indicators": [
+            "AI voice cloning",
+            "IRS impersonation",
+            "arrest threats",
+            "immediate payment demands"
+          ]
+        },
+        {
+          "title": "Medicare Open Enrollment Scams Surge 40% This Season",
+          "description": "Federal Trade Commission reports dramatic increase in Medicare-related scams during open enrollment. Fraudsters pose as Medicare representatives to steal personal information.",
+          "url": "https://example.com/medicare-scam-surge",
+          "published": "2025-07-26T08:30:00Z",
+          "scam_type": "medicare_fraud",
+          "risk_level": "high",
+          "elderly_specific": true,
+          "key_indicators": [
+            "Medicare impersonation",
+            "personal info requests",
+            "unsolicited calls",
+            "fake plan offers"
+          ]
+        },
+        {
+          "title": "Grandparent Scam Evolution: Scammers Now Using Social Media Intel",
+          "description": "Law enforcement warns that scammers are harvesting family information from social media to make grandparent scams more convincing, including specific names and details.",
+          "url": "https://example.com/grandparent-social-media",
+          "published": "2025-07-26T14:00:00Z",
+          "scam_type": "family_emergency",
+          "risk_level": "high",
+          "elderly_specific": true,
+          "key_indicators": [
+            "family emergency",
+            "bail money",
+            "accident claims",
+            "secrecy demands"
+          ]
+        }
+      ],
+      "timestamp": "2025-07-26T15:58:54.047501"
+    },
+    {
+      "source": "newsapi",
+      "articles": [
+        {
+          "title": "Tech Support Scams Target Seniors with Fake Virus Warnings",
+          "description": "Computer users over 65 are primary targets of tech support scams showing fake virus alerts.",
+          "url": "https://example.com/tech-support-scam",
+          "published": "2025-07-26T12:00:00Z",
+          "source": "TechNews Daily"
+        }
+      ],
+      "timestamp": "2025-07-26T15:58:54.047516"
+    },
+    {
+      "source": "rss_feeds",
+      "articles": [
+        {
+          "title": "FTC Alert: Romance Scams Cost Seniors $139 Million in 2024",
+          "description": "Federal Trade Commission data shows romance scams disproportionately affect older adults.",
+          "url": "https://www.consumer.ftc.gov/romance-scam-alert",
+          "published": "2025-07-26T15:58:54.047518",
+          "source": "FTC Consumer Protection"
+        }
+      ],
+      "timestamp": "2025-07-26T15:58:54.047520"
+    }
+  ],
+  "processed_articles": [
+    {
+      "title": "FTC Alert: Romance Scams Cost Seniors $139 Million in 2024",
+      "description": "Federal Trade Commission data shows romance scams disproportionately affect older adults.",
+      "url": "https://www.consumer.ftc.gov/romance-scam-alert",
+      "published": "2025-07-26T15:58:54.047518",
+      "source": "FTC Consumer Protection",
+      "collection_source": "rss_feeds"
+    },
+    {
+      "title": "Grandparent Scam Evolution: Scammers Now Using Social Media Intel",
+      "description": "Law enforcement warns that scammers are harvesting family information from social media to make grandparent scams more convincing, including specific names and details.",
+      "url": "https://example.com/grandparent-social-media",
+      "published": "2025-07-26T14:00:00Z",
+      "scam_type": "family_emergency",
+      "risk_level": "high",
+      "elderly_specific": true,
+      "key_indicators": [
+        "family emergency",
+        "bail money",
+        "accident claims",
+        "secrecy demands"
+      ],
+      "collection_source": "perplexity"
+    },
+    {
+      "title": "Tech Support Scams Target Seniors with Fake Virus Warnings",
+      "description": "Computer users over 65 are primary targets of tech support scams showing fake virus alerts.",
+      "url": "https://example.com/tech-support-scam",
+      "published": "2025-07-26T12:00:00Z",
+      "source": "TechNews Daily",
+      "collection_source": "newsapi"
+    },
+    {
+      "title": "New IRS Impersonation Scam Targets Elderly with AI Voice Cloning",
+      "description": "Scammers are using AI to clone voices of IRS agents, targeting elderly taxpayers with threats of arrest. The FBI warns seniors to verify any IRS contact through official channels.",
+      "url": "https://example.com/irs-ai-scam",
+      "published": "2025-07-26T10:00:00Z",
+      "scam_type": "impersonation",
+      "risk_level": "critical",
+      "elderly_specific": true,
+      "key_indicators": [
+        "AI voice cloning",
+        "IRS impersonation",
+        "arrest threats",
+        "immediate payment demands"
+      ],
+      "collection_source": "perplexity"
+    },
+    {
+      "title": "Medicare Open Enrollment Scams Surge 40% This Season",
+      "description": "Federal Trade Commission reports dramatic increase in Medicare-related scams during open enrollment. Fraudsters pose as Medicare representatives to steal personal information.",
+      "url": "https://example.com/medicare-scam-surge",
+      "published": "2025-07-26T08:30:00Z",
+      "scam_type": "medicare_fraud",
+      "risk_level": "high",
+      "elderly_specific": true,
+      "key_indicators": [
+        "Medicare impersonation",
+        "personal info requests",
+        "unsolicited calls",
+        "fake plan offers"
+      ],
+      "collection_source": "perplexity"
+    }
+  ]
+}

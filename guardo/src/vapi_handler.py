@@ -1,16 +1,10 @@
 """
 Vapi agent for call handling and warm transfers.
-Integrates webhook server with agent orchestration.
 """
 import json
 import time
 from typing import Dict, Any, Optional
 from datetime import datetime
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
-from pyngrok import ngrok
-import uvicorn
-import os
 
 class VapiAgent:
     """Agent responsible for call handling, transcription, and transfers."""

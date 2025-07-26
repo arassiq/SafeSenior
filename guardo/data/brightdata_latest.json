@@ -1,0 +1,45 @@
+{
+  "timestamp": "2025-07-26T15:49:07.693580",
+  "source": "BrightData Web Scraping",
+  "results": [
+    {
+      "type": "news_article",
+      "title": "New IRS Phone Scam Targets Elderly in California",
+      "url": "https://example.com/irs-scam-alert",
+      "content": "Scammers are calling seniors claiming to be IRS agents, threatening arrest warrants for unpaid taxes. They demand immediate payment via gift cards.",
+      "date": "2024-01-26",
+      "keywords": [
+        "IRS",
+        "arrest warrant",
+        "gift cards",
+        "elderly",
+        "phone scam"
+      ]
+    },
+    {
+      "type": "forum_post",
+      "title": "Warning: Grandparent Scam on the Rise",
+      "url": "https://example.com/grandparent-scam",
+      "content": "Caller pretends to be grandchild in jail, needs bail money urgently. Don't verify with parents.",
+      "date": "2024-01-25",
+      "keywords": [
+        "grandchild",
+        "bail",
+        "urgent",
+        "family emergency"
+      ]
+    },
+    {
+      "type": "social_media",
+      "platform": "Twitter",
+      "content": "ALERT: Medicare scammers calling seniors, claiming benefits will be cancelled unless they verify SSN immediately.",
+      "date": "2024-01-26",
+      "keywords": [
+        "Medicare",
+        "SSN",
+        "benefits",
+        "verification"
+      ]
+    }
+  ]
+}

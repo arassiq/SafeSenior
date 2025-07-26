@@ -1,0 +1,42 @@
+{
+  "timestamp": "2025-07-26T15:49:08.700126",
+  "patterns": [
+    {
+      "source_id": "https://example.com/irs-scam-alert",
+      "elderly_specific": true,
+      "risk_indicators": [
+        "Authority impersonation",
+        "Suspicious payment method"
+      ],
+      "emotional_triggers": [],
+      "urgency_level": "critical",
+      "extracted_phrase": "Authority impersonation + Suspicious payment method | ",
+      "confidence": 0.85
+    },
+    {
+      "source_id": "https://example.com/grandparent-scam",
+      "elderly_specific": true,
+      "risk_indicators": [],
+      "emotional_triggers": [
+        "Family emergency exploitation",
+        "Time pressure tactic"
+      ],
+      "urgency_level": "high",
+      "extracted_phrase": " | Family emergency exploitation + Time pressure tactic",
+      "confidence": 0.85
+    },
+    {
+      "source_id": "social_media",
+      "elderly_specific": true,
+      "risk_indicators": [
+        "Benefits/identity theft attempt"
+      ],
+      "emotional_triggers": [
+        "Time pressure tactic"
+      ],
+      "urgency_level": "medium",
+      "extracted_phrase": "Benefits/identity theft attempt | Time pressure tactic",
+      "confidence": 0.85
+    }
+  ]
+}

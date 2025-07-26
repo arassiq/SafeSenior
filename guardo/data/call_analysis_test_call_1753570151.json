@@ -1,0 +1,29 @@
+{
+  "call_id": "test_call_1753570151",
+  "timestamp": "2025-07-26T15:49:13.197883",
+  "caller": "+1-555-SCAMMER",
+  "scam_type": "IRS Impersonation - Urgent Tax Payment Demand",
+  "risk_score": 0.95,
+  "action_taken": "block",
+  "senso_analysis": {
+    "original": "Hello, this is Officer Johnson from the Internal Revenue Service. \n        I'm calling about your unpaid taxes from 2023. Our records show you owe $5,847 \n        in back taxes and penalties. This is your final notice before we issue an arrest \n        warrant. You must make payment immediately to avoid criminal prosecution. \n        We accept payment via gift cards or wire transfer only. Do not hang up or \n        law enforcement will be dispatched to your location.",
+    "keywords": [
+      "IRS",
+      "arrest",
+      "payment",
+      "account",
+      "urgent"
+    ],
+    "sentiment": "negative",
+    "behavioral_cues": [
+      "fear",
+      "urgency",
+      "manipulation"
+    ]
+  },
+  "family_notification": {
+    "sent": true,
+    "method": "SMS + Email",
+    "message": "ALERT: Blocked scam call attempt. Caller claimed to be IRS demanding payment."
+  }
+}
