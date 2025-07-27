@@ -5,6 +5,7 @@ import json
 import time
 from typing import Dict, Any, Optional
 from datetime import datetime
+from .zeroEntropy_parser import zeroentropy_agent
 
 class VapiAgent:
     """Agent responsible for call handling, transcription, and transfers."""
@@ -274,23 +275,34 @@ class VapiWebhookServer:
             return self.vapi_agent.get_call_summary(call_id)
     
     def _process_scam_alert(self, call_id: str, scam_reason: str, transcript: str) -> Dict[str, Any]:
-        """Process a scam alert from VAPI."""
-        # Determine risk level based on scam reason
-        risk_score = self._assess_risk_from_reason(scam_reason)
+        """Process a scam alert from VAPI using ZeroEntropy analysis."""
+        print(f"[VAPI] Processing scam alert with ZeroEntropy analysis...")
+        
+        # Use ZeroEntropy to analyze the transcript
+        zeroentropy_analysis = zeroentropy_agent.analyze_transcript_for_scam(transcript)
+        
+        # Combine VAPI scam reason with ZeroEntropy analysis
+        combined_risk_score = max(
+            self._assess_risk_from_reason(scam_reason),
+            zeroentropy_analysis.get("risk_score", 0.0)
+        )
         
         context = {
-            "risk_score": risk_score,
+            "risk_score": combined_risk_score,
             "scam_reason": scam_reason,
-            "transcript": transcript
+            "transcript": transcript,
+            "zeroentropy_analysis": zeroentropy_analysis
         }
         
-        if risk_score > 0.8:
+        print(f"[VAPI] Combined risk assessment: VAPI={self._assess_risk_from_reason(scam_reason):.2f}, ZeroEntropy={zeroentropy_analysis.get('risk_score', 0.0):.2f}, Final={combined_risk_score:.2f}")
+        
+        if combined_risk_score > 0.8:
             # High risk - block or transfer to family
             if "irs" in scam_reason.lower() or "arrest" in scam_reason.lower():
                 return self.vapi_agent.block_call(call_id, scam_reason)
             else:
                 return self.vapi_agent.warm_transfer(call_id, "family", context)
-        elif risk_score > 0.5:
+        elif combined_risk_score > 0.5:
             # Medium risk - transfer with monitoring
             transfer_result = self.vapi_agent.warm_transfer(call_id, "senior", context)
             self.vapi_agent.monitor_call(call_id)
