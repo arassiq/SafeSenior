@@ -14,7 +14,7 @@ from zeroEntropy_parser import zeroentropy_agent
 
 def test_zeroentropy_integration():
     """Test ZeroEntropy API integration"""
-    print("🧪 Testing ZeroEntropy Integration")
+    print("🧪 Testing ZeroEntropy Integration (API Mode)")
     print("=" * 50)
     
     # Test sample transcripts
@@ -41,8 +41,14 @@ def test_zeroentropy_integration():
                 print(f"     - {pattern}")
     
     print("\n✅ ZeroEntropy integration test completed!")
-    print("\n💡 To use the real API:")
-    print("   export ZEROENTROPY_API_KEY='your_api_key_here'")
+    print("\n🔑 API Status:")
+    status = zeroentropy_agent.get_api_status()
+    print(f"   Status: {status['status']}")
+    print(f"   API Key: {status['api_key']}")
+    if status['status'] == 'connected':
+        print(f"   Total Snippets: {status['total_snippets']}")
+    else:
+        print(f"   Error: {status.get('error', 'Unknown')}")
     
     # Test API pattern fetch
     print("\n🔍 Testing pattern fetch...")

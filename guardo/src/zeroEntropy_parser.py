@@ -4,6 +4,7 @@ ZeroEntropy agent for interpreting scam data and extracting elderly-specific pat
 import json
 import os
 import requests
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 
@@ -12,58 +13,88 @@ class ZeroEntropyAgent:
     
     def __init__(self):
         self.data_path = Path(__file__).parent.parent / "data"
-        self.api_key = os.getenv("ZEROENTROPY_API_KEY", "")
+        self.api_key = os.getenv("ZEROENTROPY_API_KEY", "ze_1UiaUVwAy0tWCB28")
         self.api_base_url = "https://api.zeroentropy.dev/v1"
         
         if not self.api_key:
-            print("[ZeroEntropy] WARNING: ZEROENTROPY_API_KEY not set. Using fallback patterns.")
+            raise ValueError("ZEROENTROPY_API_KEY is required. No fallback mode available.")
         
-    def fetch_scam_patterns(self) -> Optional[Dict[str, Any]]:
+        print(f"[ZeroEntropy] Initialized with API key: {self.api_key[:8]}...")
+        
+    def fetch_scam_patterns(self) -> Dict[str, Any]:
         """Fetch scam patterns from ZeroEntropy API."""
-        if not self.api_key:
-            return self._get_fallback_patterns()
-            
         try:
             headers = {
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json"
             }
-            params = {
-                "precise_responses": False,
-                "include_document_metadata": False
-            }
-            response = requests.post(f"{self.api_base_url}/queries/top-snippets", json=params, headers=headers)
-            response.raise_for_status()
-            print(f"[ZeroEntropy] Successfully fetched patterns from API")
-            return response.json()
+            # Try different collection names
+            collections_to_try = [
+                "default",
+                "snippets", 
+                "documents",
+                "scam_data",
+                "knowledge_base",
+                "main"
+            ]
+            
+            for collection_name in collections_to_try:
+                payload = {
+                    "collection_name": collection_name,
+                    "query": "scam fraud elderly medicare irs grandparent lottery",
+                    "k": 20,
+                    "precise_responses": False,
+                    "include_document_metadata": False
+                }
+                
+                print(f"[ZeroEntropy] Trying collection: {collection_name}")
+                response = requests.post(f"{self.api_base_url}/queries/top-snippets", json=payload, headers=headers)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    print(f"[ZeroEntropy] Successfully connected to collection '{collection_name}' with {len(result.get('snippets', []))} patterns")
+                    return result
+                elif response.status_code == 404:
+                    print(f"[ZeroEntropy] Collection '{collection_name}' not found, trying next...")
+                    continue
+                else:
+                    print(f"[ZeroEntropy] Error with collection '{collection_name}': {response.status_code} - {response.text}")
+                    continue
+            
+            # If no collections worked, raise error
+            raise RuntimeError(f"No valid collections found. Tried: {', '.join(collections_to_try)}")
+            
         except Exception as e:
-            print(f"[ZeroEntropy] Error fetching patterns: {e}")
-            return self._get_fallback_patterns()
+            print(f"[ZeroEntropy] Unexpected error: {e}")
+            raise RuntimeError(f"ZeroEntropy API call failed: {e}")
     
     def analyze_transcript_for_scam(self, transcript: str) -> Dict[str, Any]:
         """Analyze transcript using ZeroEntropy patterns for scam detection."""
-        # If no API key, use fallback analysis directly
-        if not self.api_key:
-            return self._fallback_analysis(transcript)
-            
         patterns = self.fetch_scam_patterns()
-        if not patterns or not patterns.get('snippets'):
-            return self._fallback_analysis(transcript)
         
         # Use ZeroEntropy data to analyze transcript
         risk_score = 0.0
         matched_patterns = []
         scam_indicators = []
+        transcript_lower = transcript.lower()
         
         # Check against ZeroEntropy patterns
         for snippet in patterns.get('snippets', []):
             snippet_text = snippet.get('text', '').lower()
-            if any(phrase in transcript.lower() for phrase in snippet_text.split()):
-                risk_score += 0.3
-                matched_patterns.append(snippet.get('title', 'Unknown pattern'))
-                scam_indicators.append(snippet_text[:100])
+            snippet_title = snippet.get('title', 'Unknown pattern')
+            
+            # Check if any words from the snippet match the transcript
+            snippet_words = snippet_text.split()
+            matched_words = [word for word in snippet_words if word in transcript_lower]
+            
+            if matched_words:
+                # Score based on number of matched words
+                match_score = min(0.4, len(matched_words) * 0.1)
+                risk_score += match_score
+                matched_patterns.append(f"{snippet_title} (matched: {', '.join(matched_words)})")
+                scam_indicators.extend(matched_words)
         
-        # Apply elderly-specific scoring
+        # Apply elderly-specific scoring based on ZeroEntropy patterns
         elderly_keywords = [
             "medicare", "social security", "grandchild", "grandson", "granddaughter",
             "irs", "tax refund", "arrest", "warrant", "police", "fbi",
@@ -72,8 +103,8 @@ class ZeroEntropyAgent:
         ]
         
         for keyword in elderly_keywords:
-            if keyword in transcript.lower():
-                risk_score += 0.2
+            if keyword in transcript_lower:
+                risk_score += 0.15
                 scam_indicators.append(f"Elderly-targeted keyword: {keyword}")
         
         # Cap risk score at 1.0
@@ -82,65 +113,15 @@ class ZeroEntropyAgent:
         result = {
             "risk_score": risk_score,
             "matched_patterns": matched_patterns,
-            "scam_indicators": scam_indicators,
-            "analysis_source": "zeroentropy_api" if self.api_key else "fallback",
-            "confidence": "high" if risk_score > 0.7 else "medium" if risk_score > 0.4 else "low"
+            "scam_indicators": list(set(scam_indicators)),  # Remove duplicates
+            "analysis_source": "zeroentropy_api",
+            "confidence": "high" if risk_score > 0.7 else "medium" if risk_score > 0.4 else "low",
+            "total_snippets_checked": len(patterns.get('snippets', []))
         }
         
-        print(f"[ZeroEntropy] Transcript analysis: Risk={risk_score:.2f}, Patterns={len(matched_patterns)}")
+        print(f"[ZeroEntropy] Transcript analysis: Risk={risk_score:.2f}, Patterns={len(matched_patterns)}, Snippets={result['total_snippets_checked']}")
         return result
     
-    def _get_fallback_patterns(self) -> Dict[str, Any]:
-        """Get fallback patterns when API is unavailable."""
-        try:
-            with open(self.data_path / "zeroentropy_patterns.json", 'r') as f:
-                return json.load(f)
-        except Exception:
-            return {
-                "snippets": [
-                    {"title": "IRS Scam", "text": "irs tax refund arrest warrant"},
-                    {"title": "Grandparent Scam", "text": "grandchild bail money emergency"},
-                    {"title": "Medicare Scam", "text": "medicare benefits social security"},
-                    {"title": "Lottery Scam", "text": "won prize lottery winner congratulations"}
-                ]
-            }
-    
-    def _fallback_analysis(self, transcript: str) -> Dict[str, Any]:
-        """Fallback analysis when ZeroEntropy API is unavailable."""
-        risk_score = 0.0
-        matched_patterns = []
-        scam_indicators = []
-        transcript_lower = transcript.lower()
-        
-        # Basic keyword matching with better scoring
-        high_risk_phrases = {
-            # Government/Authority impersonation (highest risk)
-            "irs": 0.4, "fbi": 0.4, "police": 0.3, "arrest": 0.4, "warrant": 0.4,
-            # Family emergency scams
-            "grandchild": 0.3, "grandson": 0.3, "granddaughter": 0.3, "bail money": 0.4,
-            # Healthcare/Benefits scams
-            "medicare": 0.3, "social security": 0.3, "benefits": 0.2,
-            # Prize/Lottery scams
-            "prize": 0.2, "lottery": 0.3, "winner": 0.2, "congratulations": 0.2,
-            # Urgency tactics
-            "urgent": 0.2, "immediate": 0.2, "emergency": 0.3, "act now": 0.3,
-            # Financial terms
-            "tax refund": 0.3, "bank account": 0.2
-        }
-        
-        for phrase, score in high_risk_phrases.items():
-            if phrase in transcript_lower:
-                risk_score += score
-                matched_patterns.append(f"High-risk phrase: {phrase}")
-                scam_indicators.append(phrase)
-        
-        return {
-            "risk_score": min(risk_score, 1.0),
-            "matched_patterns": matched_patterns,
-            "scam_indicators": scam_indicators,
-            "analysis_source": "fallback",
-            "confidence": "high" if risk_score > 0.7 else "medium" if risk_score > 0.4 else "low"
-        }
     
     def _classify_scam_type(self, article: Dict[str, Any]) -> str:
         """Classify the type of scam based on indicators."""
@@ -181,29 +162,23 @@ class ZeroEntropyAgent:
         print(f"[ZeroEntropy] Elderly-specific insights: {json.dumps(elderly_insights, indent=2)}")
         return elderly_insights
     
-    def get_scam_statistics(self) -> Dict[str, Any]:
-        """Get current scam statistics for reporting."""
-        patterns = self.parse_scam_articles()
-        
-        stats = {
-            "total_patterns": len(patterns),
-            "scam_types": {},
-            "urgency_levels": {},
-            "recent_trends": []
-        }
-        
-        for pattern in patterns:
-            scam_type = pattern["metadata"].get("scam_type", "unknown")
-            urgency = pattern["metadata"].get("urgency_level", "medium")
-            
-            stats["scam_types"][scam_type] = stats["scam_types"].get(scam_type, 0) + 1
-            stats["urgency_levels"][urgency] = stats["urgency_levels"].get(urgency, 0) + 1
-        
-        # Add recent trends
-        stats["recent_trends"] = [p["text"] for p in patterns[:3]]
-        
-        print(f"[ZeroEntropy] Statistics: {json.dumps(stats, indent=2)}")
-        return stats
+    def get_api_status(self) -> Dict[str, Any]:
+        """Get ZeroEntropy API status and connection info."""
+        try:
+            patterns = self.fetch_scam_patterns()
+            return {
+                "status": "connected",
+                "api_key": f"{self.api_key[:8]}...",
+                "total_snippets": len(patterns.get('snippets', [])),
+                "last_check": datetime.now().isoformat()
+            }
+        except Exception as e:
+            return {
+                "status": "error",
+                "error": str(e),
+                "api_key": f"{self.api_key[:8]}...",
+                "last_check": datetime.now().isoformat()
+            }
 
 # Create singleton instance
 zeroentropy_agent = ZeroEntropyAgent()

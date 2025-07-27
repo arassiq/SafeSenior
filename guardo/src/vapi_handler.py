@@ -275,34 +275,33 @@ class VapiWebhookServer:
             return self.vapi_agent.get_call_summary(call_id)
     
     def _process_scam_alert(self, call_id: str, scam_reason: str, transcript: str) -> Dict[str, Any]:
-        """Process a scam alert from VAPI using ZeroEntropy analysis."""
-        print(f"[VAPI] Processing scam alert with ZeroEntropy analysis...")
+        """Process a scam alert using ZeroEntropy analysis exclusively."""
+        print(f"[VAPI] Processing scam alert with ZeroEntropy analysis (VAPI reason: {scam_reason})")
         
-        # Use ZeroEntropy to analyze the transcript
+        # Use ZeroEntropy exclusively for analysis
         zeroentropy_analysis = zeroentropy_agent.analyze_transcript_for_scam(transcript)
         
-        # Combine VAPI scam reason with ZeroEntropy analysis
-        combined_risk_score = max(
-            self._assess_risk_from_reason(scam_reason),
-            zeroentropy_analysis.get("risk_score", 0.0)
-        )
+        # Use ZeroEntropy risk score as the primary score
+        risk_score = zeroentropy_analysis.get("risk_score", 0.0)
         
         context = {
-            "risk_score": combined_risk_score,
-            "scam_reason": scam_reason,
+            "risk_score": risk_score,
+            "vapi_scam_reason": scam_reason,  # Keep VAPI reason for context
             "transcript": transcript,
-            "zeroentropy_analysis": zeroentropy_analysis
+            "zeroentropy_analysis": zeroentropy_analysis,
+            "matched_patterns": zeroentropy_analysis.get("matched_patterns", []),
+            "scam_indicators": zeroentropy_analysis.get("scam_indicators", [])
         }
         
-        print(f"[VAPI] Combined risk assessment: VAPI={self._assess_risk_from_reason(scam_reason):.2f}, ZeroEntropy={zeroentropy_analysis.get('risk_score', 0.0):.2f}, Final={combined_risk_score:.2f}")
+        print(f"[VAPI] ZeroEntropy risk assessment: {risk_score:.2f} ({zeroentropy_analysis.get('confidence', 'unknown')} confidence)")
         
-        if combined_risk_score > 0.8:
-            # High risk - block or transfer to family
-            if "irs" in scam_reason.lower() or "arrest" in scam_reason.lower():
-                return self.vapi_agent.block_call(call_id, scam_reason)
+        if risk_score > 0.8:
+            # High risk - block or transfer to family based on ZeroEntropy analysis
+            if any(indicator in context["scam_indicators"] for indicator in ["irs", "arrest", "warrant", "fbi"]):
+                return self.vapi_agent.block_call(call_id, f"ZeroEntropy high-risk detection: {risk_score:.2f}")
             else:
                 return self.vapi_agent.warm_transfer(call_id, "family", context)
-        elif combined_risk_score > 0.5:
+        elif risk_score > 0.5:
             # Medium risk - transfer with monitoring
             transfer_result = self.vapi_agent.warm_transfer(call_id, "senior", context)
             self.vapi_agent.monitor_call(call_id)
