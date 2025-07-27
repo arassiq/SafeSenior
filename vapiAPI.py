@@ -54,13 +54,13 @@ async def scamHandling(request: Request):
     return {"status": "ok"}
 
 def sendText_Scam(reason, transcript):
-    Message = f"We have intercepted a call between a scammer and your elder\nReason for interception: {reason}\nTranscript: {transcript}"
+    Message = f"We have intercepted a call between a scammer and your elder\n\nReason for interception: {reason}\n\nTranscript: {transcript}"
     #sendMessage(Message)
 
     return Message
 
 def sendText_SafeCall(reason, transcript):
-    Message = f"We have approved a call between an unidentified number and your elder\nReason for approval: {reason}\nTranscript: {transcript}"
+    Message = f"We have approved a call between an unidentified number and your elder\n\nReason for approval: {reason}\n\nTranscript: {transcript}"
     #sendMessage(Message)
 
     return Message
